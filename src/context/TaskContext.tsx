@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Task, Priority, Status } from '../types/task';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { createContext, useContext } from 'react';
+import type { Task, Priority, Status } from '../types/task';
+import { useTaskManager } from '../hooks/useTaskManager';
 
 interface TaskContextType {
     tasks: Task[];
@@ -8,6 +8,7 @@ interface TaskContextType {
     updateTask: (id: string, updates: Partial<Task>) => void;
     deleteTask: (id: string) => void;
     toggleTaskStatus: (id: string) => void;
+    reorderTasks: (activeId: string, overId: string) => void;
 
     // Filtering & Search
     searchQuery: string;
@@ -23,90 +24,17 @@ interface TaskContextType {
         total: number;
         completed: number;
         pending: number;
+        inProgress: number;
     };
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export function TaskProvider({ children }: { children: React.ReactNode }) {
-    const [tasks, setTasks] = useLocalStorage<Task[]>('tasks', []);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
-    const [priorityFilter, setPriorityFilter] = useState<Priority | 'all'>('all');
-
-    const addTask = (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-        const newTask: Task = {
-            ...taskData,
-            id: crypto.randomUUID(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        };
-        setTasks([...tasks, newTask]);
-    };
-
-    const updateTask = (id: string, updates: Partial<Task>) => {
-        setTasks(
-            tasks.map((task) =>
-                task.id === id ? { ...task, ...updates, updatedAt: new Date() } : task
-            )
-        );
-    };
-
-    const deleteTask = (id: string) => {
-        setTasks(tasks.filter((task) => task.id !== id));
-    };
-
-    const toggleTaskStatus = (id: string) => {
-        setTasks(
-            tasks.map((task) =>
-                task.id === id
-                    ? {
-                        ...task,
-                        status: task.status === 'completed' ? 'pending' : 'completed',
-                        updatedAt: new Date(),
-                    }
-                    : task
-            )
-        );
-    };
-
-    const filteredTasks = tasks.filter((task) => {
-        const matchesSearch =
-            task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            task.description?.toLowerCase().includes(searchQuery.toLowerCase());
-
-        const matchesStatus = statusFilter === 'all' || task.status === 'statusFilter'; // WILL FIX TYPO IN A MOMENT, wait I'll fix it now: task.status === statusFilter
-        const actualMatchesStatus = statusFilter === 'all' || task.status === statusFilter;
-
-        const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
-
-        return matchesSearch && actualMatchesStatus && matchesPriority;
-    });
-
-    const stats = {
-        total: tasks.length,
-        completed: tasks.filter((t) => t.status === 'completed').length,
-        pending: tasks.filter((t) => t.status === 'pending').length,
-    };
+    const taskManager = useTaskManager();
 
     return (
-        <TaskContext.Provider
-            value={{
-                tasks,
-                addTask,
-                updateTask,
-                deleteTask,
-                toggleTaskStatus,
-                searchQuery,
-                setSearchQuery,
-                statusFilter,
-                setStatusFilter,
-                priorityFilter,
-                setPriorityFilter,
-                filteredTasks,
-                stats,
-            }}
-        >
+        <TaskContext.Provider value={taskManager}>
             {children}
         </TaskContext.Provider>
     );
