@@ -1,73 +1,64 @@
-# React + TypeScript + Vite
+# Task Flow 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, responsive, and highly interactive Task Management Dashboard built with React and TypeScript.
 
-Currently, two official plugins are available:
+**Live Demo:** [https://task-flow-eight-nu.vercel.app/](https://task-flow-eight-nu.vercel.app/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+##  Features
 
-## React Compiler
+- **Kanban Board & List View:** Seamlessly toggle between a traditional list view and a 3-column Kanban board (To Do, In Progress, Completed).
+- **Drag & Drop Reordering:** Fully accessible drag-and-drop functionality using `@dnd-kit`. Smoothly move tasks between Kanban columns to update their status instantly!
+- **Persistent Storage:** Data is automatically saved to your browser's LocalStorage. Your tasks will be waiting for you when you return.
+- **Advanced Filtering & Search:** Instantly filter tasks by status, priority, or search by text in the title/description.
+- **Dark Mode Support:** Beautifully themed light and dark modes toggleable from the dashboard header.
+- **Smooth Animations:** Utilizes `framer-motion` for buttery smooth layout transitions and element rendering.
+- **Robust Testing:** Core logic and components are tested using `Vitest` and React Testing Library.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+##  Technology Stack
 
-## Expanding the ESLint configuration
+- **Frontend Framework:** React 18 with TypeScript, initialized via Vite.
+- **Styling:** Tailwind CSS for rapid, utility-first styling.
+- **UI Components:** Shadcn UI (Radix UI + Tailwind) for beautiful, accessible, and customizable base components.
+- **Drag and Drop:** `@dnd-kit/core` and `@dnd-kit/sortable` for the Kanban and List reordering.
+- **Animations:** `framer-motion` for declarative layout animations.
+- **Date Formatting:** `date-fns` for rendering robust due dates and timestamps.
+- **Testing:** `Vitest`, `@testing-library/react`, and `jsdom`.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Design Decisions & Architecture
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1.  **State Management (Context + Custom Hook):**
+    Instead of using heavy libraries like Redux, we opted for React's native Context API combined with a custom `useTaskManager` hook. The logic for filtering, sorting, and stats calculation lives entirely in the hook, keeping the components clean. The Context simply acts as a dependency injector to avoid prop-drilling.
+2.  **Modular Component Design:**
+    The monolith `Dashboard.tsx` was broken down into singular responsibilities across `TaskListContainer`, `DashboardStats`, `DashboardFilters`, etc. This allows for easier testing and future scalability.
+3.  **Kanban `DragOverlay` vs Motion Layout:**
+    When implementing the Kanban drag-and-drop, we found an inherent CSS conflict between Framer Motion's automatic layout animations and dnd-kit's positional transforms. To resolve this, we isolated the drag node and implemented a `DragOverlay`. This guarantees that moving cards across columns is visually flawless without any "jumping" layout bugs.
+4.  **Local Storage Persistence:**
+    We created a custom generic `useLocalStorage` hook that intercepts JSON parsing to safely revive Date objects that define task deadlines and creation times.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+##  Local Setup Instructions
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1.  **Clone the repository:**
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+    ```bash
+    git clone https://github.com/aditya22314/Task-Flow.git
+    cd Task-Flow
+    ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+2.  **Install dependencies:**
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+    ```bash
+    npm install
+    ```
+
+3.  **Start the development server:**
+
+    ```bash
+    npm run dev
+    ```
+
+4.  **Run the unit tests:**
+    ```bash
+    npm run test
+    ```
+
+The application will be available at `http://localhost:5173`.
